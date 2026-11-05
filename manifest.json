@@ -1,0 +1,16 @@
+{
+  "name": "Operasi Sentinel · Two Rooms and a Boom",
+  "short_name": "Op. Sentinel",
+  "description": "Kartu peran rahasia Two Rooms and a Boom untuk Program Manajer Pratama BPJS. Bisa dipakai tanpa internet.",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e2b25",
+  "theme_color": "#1e2b25",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
