@@ -221,32 +221,33 @@ const MARKAS={A:'Utara',B:'Selatan'};
 const TIM={blue:{nama:'Tim Ketahanan',warna:'Biru'},red:{nama:'Jaringan Penyusup',warna:'Merah'}};
 const ag=n=>String(n).padStart(3,'0');
 const ROLES={
-  presiden:{team:'blue',name:'Pemegang Kunci Data',orig:'Presiden',icon:'key',special:true,
-    task:'Anda memegang kunci data jutaan peserta JKN. Di akhir Ronde 3 Anda harus berada di markas yang BERBEDA dengan Agen Peretas.',
-    info:()=>'Dokter dan Hacker sudah tahu siapa Anda. Jaga identitas Anda baik-baik.'},
-  dokter:{team:'blue',name:'Dokter',icon:'cross',special:true,
-    task:'Arahkan dan lindungi Pemegang Kunci Data tanpa membocorkan rahasianya secara sembrono.',
-    info:a=>`Pemegang Kunci Data (Presiden) adalah agen No. ${ag(a.presiden)}, Markas ${MARKAS[a.G[a.presiden]]}.`},
-  pengawal:{team:'blue',name:'Pengawal',icon:'shield',special:true,
-    task:'Garda terdepan pertahanan Pemegang Kunci Data. Bantu memverifikasi identitas anggota tim.',info:null},
-  biru:{team:'blue',name:'Anggota Tim Ketahanan',orig:'Anggota Tim Biru',icon:'person',special:false,
+  presiden:{team:'blue',name:'Presiden',icon:'star',special:true,
+    task:'Anda target utama. Di akhir Ronde 3 Anda harus berada di markas yang BERBEDA dengan Bomber.',
+    info:()=>'Ajudan dan Hacker sudah tahu siapa Anda. Jaga identitas Anda baik-baik.'},
+  dokter:{team:'blue',name:'Ajudan',icon:'shield',special:true,
+    task:'Dampingi dan lindungi Presiden tanpa membocorkan identitasnya secara sembrono.',
+    info:a=>`Presiden adalah agen No. ${ag(a.presiden)}, Markas ${MARKAS[a.G[a.presiden]]}.`},
+  pengawal:{team:'blue',name:'Detektif',icon:'search',special:true,
+    task:'Lacak Bomber dan bantu Tim Ketahanan menjauhkannya dari Presiden.',
+    info:a=>`Bomber adalah agen No. ${ag(a.bomber)}, Markas ${MARKAS[a.G[a.bomber]]}.`},
+  biru:{team:'blue',name:'Anggota Tim Ketahanan',icon:'person',special:false,
     task:'Cari tahu identitas lawan, amankan markas, dan dukung keputusan Kepala Markas.',info:null},
-  bomber:{team:'red',name:'Agen Peretas',orig:'Bomber',icon:'bomb',special:true,
-    task:'Anda penyusup utama. Di akhir Ronde 3 Anda harus berada di markas yang SAMA dengan Pemegang Kunci Data.',
-    info:()=>'Insinyur sudah tahu siapa Anda.'},
+  bomber:{team:'red',name:'Bomber',icon:'bomb',special:true,
+    task:'Anda penyerang utama. Di akhir Ronde 3 Anda harus berada di markas yang SAMA dengan Presiden.',
+    info:()=>'Insinyur dan Detektif sudah tahu siapa Anda.'},
   insinyur:{team:'red',name:'Insinyur',icon:'wrench',special:true,
-    task:'Arahkan Agen Peretas menuju markas tempat Pemegang Kunci Data berada.',
-    info:a=>`Agen Peretas (Bomber) adalah agen No. ${ag(a.bomber)}, Markas ${MARKAS[a.G[a.bomber]]}.`},
+    task:'Arahkan Bomber menuju markas tempat Presiden berada.',
+    info:a=>`Bomber adalah agen No. ${ag(a.bomber)}, Markas ${MARKAS[a.G[a.bomber]]}.`},
   hacker:{team:'red',name:'Hacker',icon:'terminal',special:true,
     task:'Beri petunjuk terselubung kepada Jaringan Penyusup.',
-    info:a=>`Pemegang Kunci Data (Presiden) adalah agen No. ${ag(a.presiden)}, Markas ${MARKAS[a.G[a.presiden]]}.`},
-  merah:{team:'red',name:'Anggota Jaringan Penyusup',orig:'Anggota Tim Merah',icon:'person',special:false,
-    task:'Bantu Agen Peretas menembus pertahanan Tim Ketahanan dan masuk ke markas sasaran.',info:null},
+    info:a=>`Presiden adalah agen No. ${ag(a.presiden)}, Markas ${MARKAS[a.G[a.presiden]]}.`},
+  merah:{team:'red',name:'Anggota Jaringan Penyusup',icon:'person',special:false,
+    task:'Bantu Bomber menembus pertahanan Tim Ketahanan dan masuk ke markas Presiden.',info:null},
   mmBiru:{team:'red',fake:'blue',name:'Mata-mata Biru',icon:'mask',special:true,extra:true,
-    task:'Anda anggota Jaringan Penyusup yang menyamar. Susupi Tim Ketahanan dan bantu Agen Peretas.',
+    task:'Anda anggota Jaringan Penyusup yang menyamar. Susupi Tim Ketahanan dan bantu Bomber.',
     info:()=>'Saat Color Share, layar Anda menampilkan BIRU (warna palsu). Card Share akan membongkar peran asli Anda.'},
   mmMerah:{team:'blue',fake:'red',name:'Mata-mata Merah',icon:'mask',special:true,extra:true,
-    task:'Anda anggota Tim Ketahanan yang menyamar. Susupi Jaringan Penyusup dan lindungi Pemegang Kunci Data.',
+    task:'Anda anggota Tim Ketahanan yang menyamar. Susupi Jaringan Penyusup dan lindungi Presiden.',
     info:()=>'Saat Color Share, layar Anda menampilkan MERAH (warna palsu). Card Share akan membongkar peran asli Anda.'},
   negoBiru:{team:'blue',only:'card',name:'Negosiator',icon:'talk',special:true,extra:true,
     task:'Anda hanya mau bicara dengan data lengkap.',info:()=>'Anda HANYA boleh Card Share. Color Share tidak diizinkan.'},
@@ -264,6 +265,8 @@ const LEVELS={'':{name:'Dasar',desc:'Enam peran khusus saja.',blue:[],red:[]},
 const ALPH='ABCDEFGHJKMNPQRSTUVWXYZ';
 
 const ICON={
+  star:'<path d="M24 5l5.6 11.6 12.6 1.8-9.1 8.9 2.2 12.6L24 34l-11.3 5.9 2.2-12.6-9.1-8.9 12.6-1.8z"/>',
+  search:'<circle cx="20" cy="20" r="12"/><path d="M29 29l12 12M14 17a7 7 0 0 1 6-5"/>',
   key:'<circle cx="17" cy="24" r="9"/><circle cx="17" cy="24" r="3"/><path d="M26 24h17M37 24v6M42 24v5"/>',
   cross:'<circle cx="24" cy="24" r="17"/><path d="M24 15v18M15 24h18"/>',
   shield:'<path d="M24 6l15 6v11c0 10-7 16-15 19C16 39 9 33 9 23V12z"/><path d="M18 24l5 5 8-10"/>',
@@ -378,7 +381,7 @@ function dossierHTML(code,num,{copy=false,anim=null}={}){
       </dl>
     </div>
     <h2 class="rolename" id="rolename" data-text="${esc(R.name)}">${anim==='full'?'<span class="caret"></span>':esc(R.name)}</h2>
-    <div class="orig">${R.orig?`Nama peran di panduan: ${esc(R.orig)}`:'&nbsp;'}</div>
+    ${R.orig?`<div class="orig">${esc(R.orig)}</div>`:'<div style="height:10px"></div>'}
     <p class="task">${esc(R.task)}</p>
     ${info&&!copy?`<div class="secret"><div class="lbl">Info rahasia</div><span class="redact" data-act="unredact" role="button" tabindex="0" aria-label="Ketuk untuk membaca info rahasia">${esc(info)}</span><div class="redact-hint">Ketuk bagian hitam untuk membaca. Ketuk lagi untuk menutup.</div></div>`:''}
     <div class="foot"><span style="flex:1;padding-right:12px">Cocokkan nomor ini dengan nomor di dada pemiliknya.</span><span style="white-space:nowrap">tanda asli <b>${verifyCode(code,num,role)}</b></span></div>
@@ -489,7 +492,7 @@ function fSetupV(){
       <div class="tab">Ruang Komando</div>
       <h2>Buka operasi baru</h2>
       <div class="field"><label for="s_n">Jumlah agen yang hadir</label><input id="s_n" type="number" inputmode="numeric" min="12" max="200" value="${n}"></div>
-      <p class="small" style="margin-top:8px">Agen diberi nomor 1 sampai jumlah ini. Aplikasi membagi mereka acak ke Markas Utara (A) dan Markas Selatan (B), masing-masing separuh Tim Ketahanan dan separuh Jaringan Penyusup. Pemegang Kunci Data selalu di Markas Utara, Agen Peretas selalu di Markas Selatan.</p>
+      <p class="small" style="margin-top:8px">Agen diberi nomor 1 sampai jumlah ini. Aplikasi membagi mereka acak ke Markas Utara (A) dan Markas Selatan (B), masing-masing separuh Tim Ketahanan dan separuh Jaringan Penyusup. Presiden selalu di Markas Utara, Bomber selalu di Markas Selatan.</p>
       <div class="field"><label>Peran tambahan</label>
         <div class="choice">${Object.entries(LEVELS).map(([k,v])=>`<button data-lvl="${k}" aria-pressed="${lvl===k}">${v.name}</button>`).join('')}</div></div>
       <p class="small" style="margin-top:8px">${LEVELS[lvl].desc} Minimal ${minPlayers(lvl)} agen. Setiap peran tambahan menggantikan satu anggota biasa, jadi kedua pihak tetap seimbang.</p>
@@ -524,7 +527,7 @@ function fSesiV(){
       </ol>
     </div>
     <div class="paper small" style="margin-top:16px">
-      Dokter, Hacker, dan Insinyur langsung melihat nomor target rahasianya di berkas masing-masing. Fasilitator tidak perlu membisikkan apa pun.
+      Ajudan, Detektif, Hacker, dan Insinyur langsung melihat nomor target rahasianya di berkas masing-masing. Fasilitator tidak perlu membisikkan apa pun.
       ${ps.lvl?`<hr style="border:0;border-top:1px solid var(--garis);margin:12px 0">
       <b>Peran tambahan di operasi ini:</b><br>
       Mata-mata: Color Share-nya menampilkan warna palsu. Hanya Card Share yang membongkar warna aslinya.
@@ -565,7 +568,7 @@ function fDaftarV(){
     </div>
     <div class="paper small" style="margin-top:16px">
       <b>Kode reset berkas: <span style="font-size:20px;letter-spacing:.1em">${resetCode(f.code)}</span></b><br>
-      Berikan hanya kepada agen yang salah memasukkan nomor. Kolom "Tanda" harus sama dengan tanda asli di pojok berkas agen. Pakai ini untuk memastikan berkas Pemegang Kunci Data dan Agen Peretas asli saat pengungkapan.
+      Berikan hanya kepada agen yang salah memasukkan nomor. Kolom "Tanda" harus sama dengan tanda asli di pojok berkas agen. Pakai ini untuk memastikan berkas Presiden dan Bomber asli saat pengungkapan.
     </div>
   </div>`;
 }
@@ -621,12 +624,12 @@ function hasilV(){
     <p class="on-desk dim small" style="margin:0">Pengungkapan</p>
     <div class="paper" style="margin-top:14px">
       <h2>Siapa yang menang?</h2>
-      <p class="small">Panggil Pemegang Kunci Data (agen No. ${ag(g.presiden)}) dan Agen Peretas (agen No. ${ag(g.bomber)}) ke tengah. Cocokkan tanda asli di berkas mereka dengan arsip, lalu catat di markas mana mereka berada sekarang.</p>
-      ${pick('pres','Pemegang Kunci Data sekarang di')}${pick('bomb','Agen Peretas sekarang di')}
+      <p class="small">Panggil Presiden (agen No. ${ag(g.presiden)}) dan Bomber (agen No. ${ag(g.bomber)}) ke tengah. Cocokkan tanda asli di berkas mereka dengan arsip, lalu catat di markas mana mereka berada sekarang.</p>
+      ${pick('pres','Presiden sekarang di')}${pick('bomb','Bomber sekarang di')}
       ${done?`<div class="verdict" id="verdict">
         <span class="stamp dbl ${red?'red':'blue'}">${red?'SISTEM<br>JEBOL':'MISI<br>BERHASIL'}</span>
         <p style="margin-top:22px;font-weight:700;font-size:18px">${red?'Jaringan Penyusup menang.':'Tim Ketahanan menang.'}</p>
-        <p class="small dim">${red?'Agen Peretas berhasil masuk ke markas Pemegang Kunci Data.':'Pemegang Kunci Data berhasil dijauhkan dari Agen Peretas.'}</p>
+        <p class="small dim">${red?'Bomber berhasil masuk ke markas Presiden.':'Presiden berhasil dijauhkan dari Bomber.'}</p>
         <button class="btn paperbtn" data-act="hReset" style="margin-top:8px">Atur ulang</button></div>`:''}
     </div></div>`;
 }
