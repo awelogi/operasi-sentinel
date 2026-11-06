@@ -87,7 +87,8 @@ p{margin:0 0 12px}
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:14px 18px;font-weight:700;font-size:17px;
   background:var(--tinta);color:var(--kertas);border-radius:3px;box-shadow:3px 3px 0 rgba(0,0,0,.35);transition:transform .08s}
 .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(0,0,0,.35)}
-.btn.red{background:var(--merah)} .btn.blue{background:var(--biru)}
+.btn.red{background:var(--merah)}
+.btn.white{background:#f6f3ea;color:var(--tinta);box-shadow:0 0 0 1.5px var(--tinta) inset,3px 3px 0 rgba(0,0,0,.35)} .btn.blue{background:var(--biru)}
 .btn.paperbtn{background:var(--noise),var(--kertas);color:var(--tinta);box-shadow:0 0 0 1.5px var(--tinta) inset,3px 3px 0 rgba(0,0,0,.3)}
 .btn.ghost{background:transparent;color:inherit;box-shadow:none;text-decoration:underline;text-underline-offset:4px;min-height:44px;font-weight:400;font-size:15px}
 .btn[aria-disabled="true"]{opacity:.42}
@@ -114,13 +115,13 @@ input[type=number]{-moz-appearance:textfield}
 .envelope .flap{position:absolute;inset:0 0 auto 0;height:52%;transform-origin:top center;transition:transform .6s cubic-bezier(.5,0,.3,1);
   background:var(--noise),linear-gradient(180deg,var(--manila-l),var(--manila));clip-path:polygon(0 0,100% 0,50% 100%);filter:drop-shadow(0 6px 6px rgba(0,0,0,.25));z-index:2}
 .envelope .seal{position:absolute;left:50%;top:52%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;z-index:3;
-  background:radial-gradient(circle at 38% 32%,#c8443a,#8e1d15 62%,#6c140e);box-shadow:0 4px 8px rgba(0,0,0,.45),inset 0 -4px 8px rgba(0,0,0,.35);
+  background:radial-gradient(circle at 38% 32%,#5c554b,#26221c 62%,#121010);box-shadow:0 4px 8px rgba(0,0,0,.45),inset 0 -4px 8px rgba(0,0,0,.35);
   display:grid;place-items:center;transition:transform .35s,opacity .35s}
-.envelope .seal::before{content:"";position:absolute;inset:10px;border-radius:50%;border:2px dashed rgba(255,220,200,.35)}
-.envelope .seal span{font-family:"Stensil";color:#f3d6c8;font-size:26px;opacity:.85}
+.envelope .seal::before{content:"";position:absolute;inset:10px;border-radius:50%;border:2px dashed rgba(235,226,198,.35)}
+.envelope .seal span{font-family:"Stensil";color:#e6dcc0;font-size:26px;opacity:.85}
 .envelope .addr{position:absolute;left:22px;right:22px;bottom:26px;z-index:1}
 .envelope .addr .stamp{position:absolute;right:0;bottom:84px;font-size:22px;--rot:9deg}
-.envelope .string{position:absolute;left:50%;top:52%;width:2px;height:48%;background:#7a2a20;z-index:1;opacity:.5}
+.envelope .string{position:absolute;left:50%;top:52%;width:2px;height:48%;background:#26221c;z-index:1;opacity:.5}
 .envelope.opening .flap{transform:rotateX(178deg)}
 .envelope.opening .seal{transform:scale(1.25) rotate(-25deg);opacity:0}
 .hint-pulse{animation:pulse 2.2s ease-in-out infinite}
@@ -493,7 +494,7 @@ function pCardV(){
         <span class="stamp red" >RAHASIA</span>
         <div class="tiny" style="color:var(--tinta-2)">Hanya untuk</div>
         <div style="font-size:28px;font-weight:700;line-height:1.1">Agen No. ${ag(num)}</div>
-        <div class="small" style="margin-top:6px">Pastikan tidak ada yang melihat layar Anda, lalu ketuk segel merah.</div>
+        <div class="small" style="margin-top:6px">Pastikan tidak ada yang melihat layar Anda, lalu ketuk segel hitam.</div>
       </div>
     </div></div>`;
   else body=`
@@ -509,9 +510,9 @@ function pCardV(){
     <div class="stack" style="margin-top:18px">
       ${pShown?`<button class="btn paperbtn" data-act="pHide">Tutup berkas</button>`
         :pEnv?`<button class="btn paperbtn" data-act="pHide">Kembali ke nomor saya</button>`
-        :`<button class="btn red" data-act="pEnvOpen">Buka berkas rahasia</button>`}
+        :`<button class="btn" data-act="pEnvOpen">Buka berkas rahasia</button>`}
       <div class="row">
-        <button class="btn blue" data-act="pColor" ${R.only==='card'?'aria-disabled="true"':''}>Color Share</button>
+        <button class="btn white" data-act="pColor" ${R.only==='card'?'aria-disabled="true"':''}>Color Share</button>
         <button class="btn" data-act="pCard" ${R.only==='color'?'aria-disabled="true"':''}>Card Share</button>
       </div>
       <div class="paper small" style="padding:14px 16px">
