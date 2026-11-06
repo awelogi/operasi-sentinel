@@ -238,6 +238,8 @@ async function rpc(fn,args){
     const j=await r.json().catch(()=>null); if(!r.ok) throw new Error((j&&(j.message||j.msg))||('HTTP '+r.status)); return j;}
   finally{clearTimeout(t);}
 }
+function markUsed(code){S.used=S.used||[];if(!S.used.includes(code))S.used.push(code);}
+function usedHere(code){return (S.used||[]).includes(code);}
 function deviceId(){if(!S.device){S.device=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2));save();}return S.device;}
 function rand(n){let s='';const a=crypto.getRandomValues(new Uint32Array(n));for(const x of a)s+=ALPH[x%ALPH.length];return s;}
 const MARKAS={A:'Utara',B:'Selatan'};
@@ -518,7 +520,10 @@ function pCardV(){
       <div class="paper small" style="padding:14px 16px">
         <b>Berbagi itu sukarela.</b> Color Share hanya memperlihatkan warna pihak Anda. Card Share memperlihatkan berkas utuh tanpa info rahasia. Tidak ada yang boleh merebut HP orang lain.
       </div>
-      <div class="on-desk" style="text-align:center"><button class="btn ghost" data-act="pReset">Salah nomor agen? Minta kode reset ke fasilitator</button></div>
+      <div class="on-desk" style="text-align:center;display:flex;flex-direction:column;gap:2px">
+        <button class="btn ghost" data-act="pNewOp">Ikut operasi baru</button>
+        <button class="btn ghost" data-act="pReset">Salah nomor agen? Minta kode reset ke fasilitator</button>
+      </div>
     </div></div>`;
 }
 let pEnv=false;
@@ -730,9 +735,10 @@ const A={
     const s=parseSession($('#j_code').value), num=parseInt($('#j_num').value,10), err=$('#j_err');
     if(!s){err.textContent='Kode operasi tidak dikenali. Periksa lagi huruf dan angkanya di layar fasilitator.';return;}
     if(!(num>=1&&num<=s.n)){err.textContent=`Nomor agen harus antara 1 dan ${s.n}.`;return;}
+    if(usedHere(s.code)){err.textContent='HP ini sudah pernah mengambil berkas untuk operasi ini. Untuk menggantinya, minta kode reset ke fasilitator.';return;}
     SFX.unlock();
     dialog(`<h2>Agen No. ${ag(num)}?</h2><p>Berkas akan terkunci di HP ini dan hanya bisa diganti dengan kode reset dari fasilitator.</p>`,{ok:'Ya, terima berkas',onOk:()=>{
-      S.card={code:s.code,num,t:Date.now(),seen:false};S.lastCode=s.code;save();pShown=false;pEnv=false;go('p_card');}});
+      S.card={code:s.code,num,t:Date.now(),seen:false};markUsed(s.code);S.lastCode=s.code;save();pShown=false;pEnv=false;go('p_card');}});
   },
   manualToggle(){manualOpen=!manualOpen;const c=$('#j_code').value;render();$('#j_code').value=c;},
   async undi(b){
@@ -744,7 +750,7 @@ const A={
       const num=await rpc('undi_nomor',{p_code:s.code,p_device:deviceId()});
       clearInterval(tick);
       if(!(num>=1&&num<=s.n)) throw new Error('NOMOR_TIDAK_VALID');
-      S.card={code:s.code,num,t:Date.now(),seen:false,drawn:true};S.lastCode=s.code;save();
+      S.card={code:s.code,num,t:Date.now(),seen:false,drawn:true};markUsed(s.code);S.lastCode=s.code;save();
       pShown=false;pEnv=false;go('p_card');
       const el=$('#badgenum'); if(el&&!calm){el.classList.add('slam');} SFX.thud(); buzz([60,40,120]);
     }catch(e){
@@ -777,8 +783,14 @@ const A={
     const el=document.createElement('div');el.className='overlay';el.setAttribute('role','dialog');
     el.innerHTML=`<div style="width:100%;max-width:440px">${dossierHTML(code,num,{copy:true})}<p class="small" style="text-align:center;color:#d9cfb3;margin-top:14px">Card Share · ketuk di mana saja untuk menutup</p></div>`;
     document.body.appendChild(el);el.onclick=()=>el.remove();SFX.seal();},
+  pNewOp(){dialog(`<h2>Ikut operasi baru</h2><p class="small">Masukkan kode operasi baru dari layar fasilitator. Berkas operasi sekarang akan dihapus dari HP ini.</p><div class="field"><input id="no_code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KOPI80" style="text-transform:uppercase"></div><div class="err" id="no_err" role="alert"></div>`,{ok:'Lanjut',onOk:m=>{
+      const s=parseSession(m.querySelector('#no_code').value), e=m.querySelector('#no_err');
+      if(!s){e.textContent='Kode operasi tidak dikenali.';return false;}
+      if(s.code===S.card.code){e.textContent='Anda sudah memegang berkas untuk operasi ini.';return false;}
+      if(usedHere(s.code)&&!SB_ON){e.textContent='HP ini sudah pernah mengambil berkas untuk operasi itu.';return false;}
+      delete S.card;S.lastCode=s.code;save();pShown=false;pEnv=false;manualOpen=false;go('p_join');return true;}});},
   pReset(){dialog(`<h2>Reset berkas</h2><p class="small">Masukkan kode reset dari fasilitator.</p><div class="field"><input id="rs" type="password" inputmode="numeric" maxlength="4"></div><div class="err" id="rs_err" role="alert"></div>`,{ok:'Reset',danger:true,onOk:m=>{
-      if(m.querySelector('#rs').value===resetCode(S.card.code)){delete S.card;save();go('p_join');return true;}
+      if(m.querySelector('#rs').value===resetCode(S.card.code)){S.used=(S.used||[]).filter(c=>c!==S.card.code);delete S.card;save();go('p_join');return true;}
       m.querySelector('#rs_err').textContent='Kode reset salah. Tanyakan lagi ke fasilitator.';return false;}});},
   createSess(){
     const n=parseInt($('#s_n').value,10), lvl=S.setupLvl||'', mn=minPlayers(lvl);
