@@ -433,9 +433,9 @@ function playReveal(full){
 /* =========================================================
    TAMPILAN
    ========================================================= */
-let view=S.card?'p_card':S.fac?'f_sesi':'home';
+let view=(S.mode==='fac'&&S.fac)?'f_sesi':S.card?'p_card':S.fac?'f_sesi':'home';
 let pShown=false,panelOpen=false,filt='all',H={pres:null,bomb:null};
-function go(v){view=v;render();window.scrollTo(0,0);}
+function go(v){view=v;if(v.startsWith('f_')&&v!=='f_setup')S.mode='fac';else if(v==='p_card')S.mode='peserta';save();render();window.scrollTo(0,0);}
 function render(){
   const V={home:homeV,p_join:joinV,p_card:pCardV,f_setup:fSetupV,f_sesi:fSesiV,f_daftar:fDaftarV,f_timer:timerV,f_hasil:hasilV}[view];
   $('#app').innerHTML=V();
@@ -458,7 +458,7 @@ function homeV(){return `<div class="wrap">
     <h1>Siapa kawan,<br>siapa lawan?</h1>
     <p style="margin-top:12px">Berkas penugasan Anda tersegel di dalam aplikasi ini. Siapkan <b>kode operasi</b> dari layar fasilitator. Nomor agen Anda akan diundi oleh aplikasi.</p>
     <div class="stack" style="margin-top:20px">
-      <button class="btn red" data-go="p_join">Ambil berkas saya</button>
+      ${S.card?`<button class="btn red" data-go="p_card">Kembali ke berkas saya (Agen No. ${ag(S.card.num)})</button>`:`<button class="btn red" data-go="p_join">Ambil berkas saya</button>`}
     </div>
   </div>
   <div style="text-align:center;margin-top:22px" class="on-desk">
@@ -507,7 +507,7 @@ function pCardV(){
       <div class="small">Tunjukkan layar ini saat berkenalan.<br>Peran Anda tersimpan di berkas rahasia.</div>
     </div>`;
   return `<div class="wrap">
-    <div class="on-desk small" style="display:flex;justify-content:space-between"><span>Operasi Sentinel</span><span class="dim">kode ${esc(code)}</span></div>
+    <div class="on-desk small" style="display:flex;justify-content:space-between;align-items:center"><button class="linkish" data-go="home" style="font-size:14px">Beranda</button><span class="dim">Operasi Sentinel · kode ${esc(code)}</span></div>
     ${body}
     <div class="stack" style="margin-top:18px">
       ${pShown?`<button class="btn paperbtn" data-act="pHide">Tutup berkas</button>`
@@ -555,7 +555,7 @@ function fSetupV(){
 function fSesiV(){
   const f=S.fac, ps=parseSession(f.code);
   return `<div class="wrap">
-    <p class="on-desk dim small" style="margin:0">Ruang Komando · Operasi Sentinel</p>
+    <div class="on-desk small" style="display:flex;justify-content:space-between;align-items:center"><button class="linkish" data-go="home" style="font-size:14px">Beranda</button><span class="dim">Ruang Komando · Operasi Sentinel</span></div>
     <div class="paper" style="margin-top:14px;text-align:center;padding-top:26px">
       <span class="tape" style="top:-12px;left:calc(50% - 43px)"></span>
       <img src="${LOGO_INK}" alt="Need Learning Organizer" width="120" style="display:block;margin:0 auto 16px;opacity:.9">
