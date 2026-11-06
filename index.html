@@ -319,13 +319,16 @@ const _cache={};
 function buildGame(code){
   if(_cache[code]) return _cache[code];
   const {n,lvl}=parseSession(code);
-  const r=rng(code+'|v1');
+  const r=rng(code+'|v2');
   const nums=shuffle([...Array(n)].map((_,i)=>i+1),r);
   const nA=Math.ceil(n/2), groups={A:nums.slice(0,nA),B:nums.slice(nA)};
   const sp={presiden:'A',bomber:'B'};
-  ['dokter','pengawal','insinyur','hacker'].forEach(k=>sp[k]=r()<.5?'A':'B');
+  // Sebaran seimbang: tiap pasangan peran dipisah ke dua markas, mana yang ke Utara diacak.
+  const pair=(x,y)=>{const u=r()<.5;sp[x]=u?'A':'B';sp[y]=u?'B':'A';};
+  pair('dokter','pengawal');   // Ajudan / Detektif (info Tim Ketahanan)
+  pair('insinyur','hacker');   // Insinyur / Hacker (info Jaringan Penyusup)
+  LEVELS[lvl].blue.forEach((k,i)=>pair(k,LEVELS[lvl].red[i])); // Mata-mata, Negosiator, Pemalu
   const extras=LEVELS[lvl].blue.concat(LEVELS[lvl].red);
-  extras.forEach(k=>sp[k]=r()<.5?'A':'B');
   const G={},ROLE={};
   for(const g of ['A','B']){
     const m=groups[g].length, blueN=g==='A'?Math.ceil(m/2):Math.floor(m/2);
