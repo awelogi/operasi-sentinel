@@ -433,16 +433,16 @@ function playReveal(full){
 /* =========================================================
    TAMPILAN
    ========================================================= */
-let view=(S.mode==='fac'&&S.fac)?'f_sesi':S.card?'p_card':S.fac?'f_sesi':'home';
+let view=(S.mode==='fac'&&S.fac)?'f_sesi':S.card?'p_card':(S.ended&&S.mode!=='fac')?'p_ended':S.fac?'f_sesi':'home';
 let pShown=false,panelOpen=false,filt='all',H={pres:null,bomb:null};
-function go(v){view=v;if(v.startsWith('f_')&&v!=='f_setup')S.mode='fac';else if(v==='p_card')S.mode='peserta';save();render();window.scrollTo(0,0);}
+function go(v){view=v;if(v.startsWith('f_')&&v!=='f_setup')S.mode='fac';else if(v==='p_card'||v==='p_ended')S.mode='peserta';save();render();window.scrollTo(0,0);}
 function render(){
-  const V={home:homeV,p_join:joinV,p_card:pCardV,f_setup:fSetupV,f_sesi:fSesiV,f_daftar:fDaftarV,f_timer:timerV,f_hasil:hasilV}[view];
+  const V={home:homeV,p_join:joinV,p_card:pCardV,p_ended:pEndedV,f_setup:fSetupV,f_sesi:fSesiV,f_daftar:fDaftarV,f_timer:timerV,f_hasil:hasilV}[view];
   $('#app').innerHTML=V();
   $('#tabs').innerHTML=view.startsWith('f_')&&view!=='f_setup'?`<div class="tabs"><div class="in">${
     [['f_sesi','Briefing'],['f_daftar','Arsip agen'],['f_timer','Timer'],['f_hasil','Hasil']]
     .map(([k,l])=>`<button data-go="${k}" ${view===k?'aria-current="page"':''}>${l}</button>`).join('')}</div></div>`:'';
-  bind(); if(view==='f_timer')tickUI(); if((view==='f_sesi'||view==='f_daftar')&&!UND&&S.fac&&S.fac.online)refreshUnd(); if(view==='p_card')keepAwake();
+  bind(); if(view==='f_timer')tickUI(); if((view==='f_sesi'||view==='f_daftar')&&!UND&&S.fac&&S.fac.online)refreshUnd(); if(view==='p_card'){keepAwake();cekSelesai();}
 }
 
 /* ---------- beranda ---------- */
@@ -522,11 +522,36 @@ function pCardV(){
       </div>
       <div class="on-desk" style="text-align:center;display:flex;flex-direction:column;gap:2px">
         <button class="btn ghost" data-act="pNewOp">Ikut operasi baru</button>
-        <button class="btn ghost" data-act="pReset">Salah nomor agen? Minta kode reset ke fasilitator</button>
+        ${S.card.drawn?'':`<button class="btn ghost" data-act="pReset">Salah nomor agen? Minta kode reset ke fasilitator</button>`}
       </div>
     </div></div>`;
 }
 let pEnv=false;
+function pEndedV(){const e=S.ended||{};return `<div class="wrap">
+  <div class="paper" style="margin-top:36px;text-align:center;padding:36px 22px">
+    <div style="margin-bottom:22px"><span class="stamp dbl red" style="font-size:24px">OPERASI SELESAI</span></div>
+    <h2>Terima kasih${e.num?`, Agen No. ${ag(e.num)}`:''}.</h2>
+    <p>Operasi <b>${esc(e.code||'')}</b> telah diakhiri oleh fasilitator. Berkas Anda sudah dihapus dari HP ini.</p>
+    <div class="stack" style="margin-top:18px">
+      <button class="btn" data-act="endedJoin">Ikut operasi baru</button>
+      <button class="btn paperbtn" data-act="endedHome">Ke beranda</button>
+    </div>
+  </div></div>`;}
+let cekBusy=false;
+async function cekSelesai(){
+  if(!SB_ON||!S.card||cekBusy||(navigator.onLine===false)) return; cekBusy=true;
+  try{const r=await rpc('cek_operasi',{p_code:S.card.code}); if(r&&r.selesai) operasiBerakhir();}catch(e){}
+  cekBusy=false;
+}
+function operasiBerakhir(){
+  if(!S.card) return;
+  document.querySelectorAll('.colorshare,.overlay,.modal').forEach(el=>el.remove());
+  S.ended={code:S.card.code,num:S.card.num}; delete S.card; save();
+  pShown=false;pEnv=false; go('p_ended'); try{SFX.thud();buzz([120,60,120]);}catch(e){}
+}
+setInterval(cekSelesai,15000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')cekSelesai();});
+addEventListener('online',cekSelesai);
 let revealMode=null;
 
 /* ---------- fasilitator: buat operasi ---------- */
@@ -580,7 +605,9 @@ function fSesiV(){
       Mata-mata: Color Share-nya menampilkan warna palsu. Hanya Card Share yang membongkar warna aslinya.
       ${ps.lvl==='L'?'<br>Negosiator: hanya boleh Card Share.<br>Pemalu: hanya boleh Color Share.':''}`:''}
     </div>
-    <div class="on-desk" style="text-align:center;margin-top:10px"><button class="btn ghost" data-act="endSess">Tutup operasi di HP ini</button></div>
+    ${SB_ON&&f.admin?`<button class="btn red" data-act="akhiri" style="margin-top:18px">Akhiri permainan</button>
+    <p class="small on-desk dim" style="text-align:center;margin:8px 0 0">Undian ditutup dan semua agen di operasi ini keluar otomatis.</p>`:''}
+    <div class="on-desk" style="text-align:center;margin-top:10px"><button class="btn ghost" data-act="endSess">${SB_ON&&f.admin?'Tutup di HP ini saja (agen tidak ikut keluar)':'Tutup operasi di HP ini'}</button></div>
   </div>`;
 }
 
@@ -637,6 +664,7 @@ function undBriefHTML(){
   if(!f.admin) return `<h2>Undian nomor</h2><p class="small">Status undian hanya tampil di HP yang membuka operasi ini.</p>`;
   if(f.online===false) return `<h2>Undian nomor belum aktif</h2><p class="small">Operasi belum tercatat di server, biasanya karena tidak ada koneksi. Peserta tetap bisa mengisi nomor manual.</p><button class="btn" data-act="retryOnline">Coba aktifkan lagi</button>`;
   if(!UND) return `<h2>Undian nomor</h2><p class="small dim">${undErr?'Tidak bisa memuat status: '+esc(undErr):'Memuat status…'}</p>`;
+  if(UND.selesai) return `<h2>Operasi sudah diakhiri</h2><p class="small">Buat kode operasi baru untuk permainan berikutnya.</p>`;
   const k=UND.diambil.length;
   return `<h2>Undian nomor</h2><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:34px;font-weight:700">${k} / ${UND.n}</span><span class="small dim">${UND.dibuka?'undian dibuka':'undian ditutup'}</span></div>
     <div class="meter"><i style="width:${k/UND.n*100}%"></i></div><p class="small dim" style="margin:0">agen sudah mengambil berkas${undErr?' · koneksi terputus, angka terakhir':''}</p>`;
@@ -757,6 +785,7 @@ const A={
       clearInterval(tick); b.removeAttribute('aria-disabled'); b.textContent='Undi nomor saya';
       const m=String(e.message||e);
       err.textContent = m.includes('OPERASI_TIDAK_ADA')?'Kode operasi ini belum dibuka di Ruang Komando. Periksa lagi kodenya.'
+        : m.includes('OPERASI_SELESAI')?'Operasi ini sudah diakhiri. Minta kode operasi baru ke fasilitator.'
         : m.includes('UNDIAN_DITUTUP')?'Undian sudah ditutup fasilitator. Minta nomor ke fasilitator, lalu isi manual.'
         : m.includes('NOMOR_HABIS')?'Semua nomor sudah habis diundi. Hubungi fasilitator.'
         : 'Tidak ada koneksi ke server undian. Coba lagi, atau minta nomor ke fasilitator lalu isi manual.';
@@ -803,6 +832,18 @@ const A={
   async toggleUndian(){try{await rpc('atur_undian',{p_code:S.fac.code,p_admin:S.fac.admin,p_dibuka:!UND.dibuka});await refreshUnd();}catch(e){toast('Tidak ada koneksi ke server undian.');}},
   joinSess(){const s=parseSession($('#s_join').value);if(!s){toast('Kode operasi tidak dikenali.');return;}
     S.fac={code:s.code,n:s.n,pin:$('#s_pin').value.trim()};save();go('f_sesi');},
+  akhiri(){dialog(`<h2>Akhiri permainan?</h2><p>Operasi <b>${esc(S.fac.code)}</b> akan ditutup. Semua agen di operasi ini otomatis keluar dalam beberapa detik dan berkas mereka terhapus. Ini tidak bisa dibatalkan.</p>`,{ok:'Akhiri permainan',danger:true,onOk:m=>{
+      const btn=m.querySelector('[data-x=ok]'); btn.textContent='Mengakhiri…'; btn.disabled=true;
+      rpc('akhiri_operasi',{p_code:S.fac.code,p_admin:S.fac.admin}).then(()=>{
+        m.remove(); const kode=S.fac.code; delete S.fac; delete S.timer; T={r:0,elapsed:0,startedAt:null,annFired:false,endFired:false}; UND=null; panelOpen=false; save();
+        SFX.thud(); toast(`Operasi ${kode} diakhiri. Semua agen keluar otomatis.`); go('f_setup');
+      }).catch(e=>{ btn.textContent='Akhiri permainan'; btn.disabled=false;
+        const msg=String(e.message||e); m.querySelector('p').innerHTML = msg.includes('akhiri_operasi')||msg.includes('404')||msg.includes('Could not find')
+          ? 'Server belum mengenal fitur ini. Jalankan dulu skrip <b>supabase-akhiri-operasi.sql</b> di Supabase.'
+          : 'Tidak ada koneksi ke server. Periksa internet, lalu coba lagi.'; });
+      return false;}});},
+  endedJoin(){delete S.ended;S.lastCode='';save();manualOpen=false;go('p_join');},
+  endedHome(){delete S.ended;save();go('home');},
   endSess(){dialog('<h2>Tutup operasi?</h2><p>Kode operasi di HP fasilitator ini akan dihapus. Berkas di HP agen tidak terpengaruh.</p>',{ok:'Tutup operasi',danger:true,onOk:()=>{delete S.fac;delete S.timer;T={r:0,elapsed:0,startedAt:null,annFired:false,endFired:false};save();panelOpen=false;go('home');}});},
   unlock(){if($('#pin').value===S.fac.pin){panelOpen=true;render();}else $('#pin_err').textContent='PIN salah.';},
   lock(){panelOpen=false;render();},
