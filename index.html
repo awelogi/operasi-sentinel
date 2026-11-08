@@ -322,12 +322,13 @@ const _cache={};
 function buildGame(code){
   if(_cache[code]) return _cache[code];
   const {n,lvl}=parseSession(code);
-  const r=rng(code+'|v2');
+  const r=rng(code+'|v3');
   const nums=shuffle([...Array(n)].map((_,i)=>i+1),r);
   const nA=Math.ceil(n/2), groups={A:nums.slice(0,nA),B:nums.slice(nA)};
-  const sp={presiden:'A',bomber:'B'};
+  const sp={};
   // Sebaran seimbang: tiap pasangan peran dipisah ke dua markas, mana yang ke Utara diacak.
   const pair=(x,y)=>{const u=r()<.5;sp[x]=u?'A':'B';sp[y]=u?'B':'A';};
+  pair('presiden','bomber');   // Presiden dan Bomber selalu mulai di markas berbeda, mana yang di Utara diacak
   pair('dokter','pengawal');   // Ajudan / Detektif (info Tim Ketahanan)
   pair('insinyur','hacker');   // Insinyur / Hacker (info Jaringan Penyusup)
   LEVELS[lvl].blue.forEach((k,i)=>pair(k,LEVELS[lvl].red[i])); // Mata-mata, Negosiator, Pemalu
@@ -563,7 +564,7 @@ function fSetupV(){
       <div class="tab">Ruang Komando</div>
       <h2>Buka operasi baru</h2>
       <div class="field"><label for="s_n">Jumlah agen yang hadir</label><input id="s_n" type="number" inputmode="numeric" min="12" max="200" value="${n}"></div>
-      <p class="small" style="margin-top:8px">Nomor agen 1 sampai jumlah ini diundi oleh aplikasi saat peserta mengambil berkas${SB_ON?' (perlu internet saat mengundi)':''}. Aplikasi membagi mereka acak ke Markas Utara (A) dan Markas Selatan (B), masing-masing separuh Tim Ketahanan dan separuh Jaringan Penyusup. Presiden selalu di Markas Utara, Bomber selalu di Markas Selatan.</p>
+      <p class="small" style="margin-top:8px">Nomor agen 1 sampai jumlah ini diundi oleh aplikasi saat peserta mengambil berkas${SB_ON?' (perlu internet saat mengundi)':''}. Aplikasi membagi mereka acak ke Markas Utara (A) dan Markas Selatan (B), masing-masing separuh Tim Ketahanan dan separuh Jaringan Penyusup.</p>
       <div class="field"><label>Peran tambahan</label>
         <div class="choice">${Object.entries(LEVELS).map(([k,v])=>`<button data-lvl="${k}" aria-pressed="${lvl===k}">${v.name}</button>`).join('')}</div></div>
       <p class="small" style="margin-top:8px">${LEVELS[lvl].desc} Minimal ${minPlayers(lvl)} agen. Setiap peran tambahan menggantikan satu anggota biasa, jadi kedua pihak tetap seimbang.</p>
